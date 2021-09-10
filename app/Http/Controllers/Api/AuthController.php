@@ -11,11 +11,15 @@ class AuthController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        return User::all();
+        $users =  User::all();
+        return response()->json([
+            'message'=> 'Display a listing of the resource.',
+            'data'  => $users
+        ]);
     }
 
     /**
@@ -47,7 +51,11 @@ class AuthController extends Controller
      */
     public function show($id)
     {
-        //
+        $userid=  User::find($id);
+        return response()->json([
+            'message'=> 'Display a listing of the resource.',
+            'data'  => $userid
+        ]);
     }
 
     /**
@@ -81,6 +89,6 @@ class AuthController extends Controller
      */
     public function destroy($id)
     {
-        //
+        return User::deleted($id);
     }
 }
