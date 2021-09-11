@@ -4,7 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Exception;
+//use Dotenv\Validator;
+use Illuminate\Auth\Events\Validated;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -17,6 +22,7 @@ class AuthController extends Controller
     {
         $users =  User::all();
         return response()->json([
+            'success'=>true,
             'message'=> 'Display a listing of the resource.',
             'data'  => $users
         ]);
@@ -35,27 +41,78 @@ class AuthController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param  Request  $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
-        //
+  
+         
+         $validator = Validator::make($request->all(), [
+            'name' =>'required|string',
+            'email' =>'required|email|unique:users',
+            'password' =>'required|min:8',
+          
+         ]);
+        
+         if ($validator->fails()) {
+           return response()->json([
+               'success'=>false,
+               'errors'=>$validator->errors()
+            ],401);
+         }
+         try {
+            //User::create($request->all());
+              User::insert([
+
+                'name'=>$request->name,
+                'email'=>$request->email,
+                'password'=>Hash::make($request->email)
+            ]);
+            return response()->json([
+                'success'=>true,
+                'message'=> 'Record Added'
+                 
+            ]);
+         } catch (Exception $e) {
+            return response()->json([
+                'success'=>false,
+                'errors'=>'Something went wrong'
+             ],400); 
+         }
+     
+       
+        
+         
     }
 
     /**
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
-        $userid=  User::find($id);
-        return response()->json([
-            'message'=> 'Display a listing of the resource.',
-            'data'  => $userid
-        ]);
+        
+      
+
+        try {
+            User::findOrFail($id);
+            return response()->json([
+                'success'=>true,
+                'message'=> 'Display the specified resource.',
+                'data'  => User::find($id)
+                 
+            ]);
+        } catch (Exception $e) {
+            
+            return response()->json([
+                'success'=>false,
+                'message'=> 'No Data Found'
+                 
+            ]);
+        }
     }
 
     /**
@@ -66,7 +123,7 @@ class AuthController extends Controller
      */
     public function edit($id)
     {
-        //
+         
     }
 
     /**
@@ -78,17 +135,64 @@ class AuthController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'name' =>'required|string',
+            'email' =>'required|email|unique:users',
+            'password' =>'required|min:8',
+          
+         ]);
+        
+         if ($validator->fails()) {
+           return response()->json([
+               'success'=>false,
+               'errors'=>$validator->errors()
+            ],401);
+         }
+         try {
+            
+            $user = User::FindOrFail($id);
+                $user->name=$request->name;
+                $user->email=$request->email;
+                $user->password=Hash::make($request->email);
+                $user->save();
+           
+            return response()->json([
+                'success'=>true,
+                'message'=> 'Record Updated',
+                'data'=>$user
+                 
+            ]);
+         } catch (Exception $e) {
+            return response()->json([
+                'success'=>false,
+                'errors'=>'Something went wrong'
+             ],400); 
+         }
     }
 
     /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
-        return User::deleted($id);
+        
+        try {
+            User::findOrFail($id)->delete();
+            return response()->json([
+                'success'=>true,
+                'message'=> 'User Remove Successfully'
+                 
+            ]);
+        } catch (Exception $e) {
+            
+            return response()->json([
+                'success'=>false,
+                'message'=> 'Opps Something wrong'
+                 
+            ]);
+        }
     }
 }
