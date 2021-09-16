@@ -8,11 +8,48 @@ use Exception;
 //use Dotenv\Validator;
 use Illuminate\Auth\Events\Validated;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+
+    /**
+     * Create a new AuthController instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('auth:api', ['except' => ['login']]);
+    }
+
+    
+    public function login(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+
+        $token = auth()->attempt($credentials);
+        return $token;
+           
+      
+
+       // return response()->json(['error' => 'Unauthorized'], 401);
+    }
+
+      
+
+   
+    /**
+     * Get the guard to be used during authentication.
+     *
+     * @return \Illuminate\Contracts\Auth\Guard
+     */
+    public function guard()
+    {
+        return Auth::guard();
+    }
     /**
      * Display a listing of the resource.
      *
@@ -195,4 +232,12 @@ class AuthController extends Controller
             ]);
         }
     }
+
+    // public function login(Request $request)
+    // {
+    //     $credentials = $request->only('email', 'password');
+
+    //     $test= Auth::attempt($credentials);
+    //     return $test;
+    // }
 }
